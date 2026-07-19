@@ -1,0 +1,22 @@
+{
+  "name": "website-cloner",
+  "version": "2.0.0",
+  "description": "Advanced Website Cloner - Professional Web Cloning System (Node.js)",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node api/index.js",
+    "dev": "node api/index.js",
+    "vercel-build": "echo 'No build required'"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "archiver": "^7.0.1",
+    "cheerio": "^1.0.0",
+    "axios": "^1.7.7",
+    "mime-types": "^2.1.35",
+    "sanitize-filename": "^1.6.3"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}
