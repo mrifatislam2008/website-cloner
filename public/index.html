@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Website Cloner - Professional Web Cloning System</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 Advanced Website Cloner</h1>
+            <p>Professional Website Cloning System - Complete Website Downloader</p>
+        </div>
+        
+        <div class="content">
+            <div id="alertContainer"></div>
+            
+            <form id="cloneForm">
+                <div class="input-group">
+                    <label for="url">Enter Website URL to Clone:</label>
+                    <input type="url" 
+                           id="url" 
+                           name="url" 
+                           required 
+                           placeholder="https://example.com">
+                </div>
+                
+                <div class="options">
+                    <h3>⚙️ Advanced Options</h3>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="download_images" checked> Download Images
+                        </label>
+                        <label>
+                            <input type="checkbox" name="download_css" checked> Download CSS
+                        </label>
+                        <label>
+                            <input type="checkbox" name="download_js" checked> Download JavaScript
+                        </label>
+                        <label>
+                            <input type="checkbox" name="follow_links"> Follow Internal Links
+                        </label>
+                        <label>
+                            <input type="checkbox" name="recursive" checked> Recursive Download
+                        </label>
+                        <label>
+                            <input type="checkbox" name="preserve_structure" checked> Preserve Structure
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn" id="cloneBtn">
+                    🚀 Start Cloning Website
+                </button>
+            </form>
+            
+            <div class="warning">
+                <strong>⚠️ Important Notes:</strong>
+                <ul style="margin-top: 5px; margin-left: 20px;">
+                    <li>Make sure you have permission to clone the website</li>
+                    <li>Large websites may take time to download</li>
+                    <li>Maximum execution time is set to 5 minutes</li>
+                    <li>Files larger than 50MB may be skipped</li>
+                </ul>
+            </div>
+            
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-number" id="statFiles">0</div>
+                    <div class="stat-label">Files Downloaded</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="statSize">0 MB</div>
+                    <div class="stat-label">Total Size</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="statTime">0s</div>
+                    <div class="stat-label">Time Elapsed</div>
+                </div>
+            </div>
+            
+            <div class="progress" id="progress" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill">0%</div>
+                </div>
+            </div>
+            
+            <div class="log" id="log" style="display: none;"></div>
+            
+            <div id="downloadSection" style="display: none; text-align: center; margin-top: 20px;">
+                <a id="downloadLink" class="download-btn">📥 Download Clone ZIP</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Advanced Website Cloner v2.0 | Professional Web Cloning System</p>
+            <p>⚠️ For educational purposes only. Respect website terms of service and copyright laws.</p>
+        </div>
+    </div>
+    
+    <script>
+    document.getElementById('cloneForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const url = document.getElementById('url').value;
+        const btn = document.getElementById('cloneBtn');
+        const progress = document.getElementById('progress');
+        const log = document.getElementById('log');
+        const stats = document.getElementById('stats');
+        const downloadSection = document.getElementById('downloadSection');
+        const alertContainer = document.getElementById('alertContainer');
+        
+        // Reset UI
+        alertContainer.innerHTML = '';
+        downloadSection.style.display = 'none';
+        log.innerHTML = '';
+        log.style.display = 'block';
+        progress.style.display = 'block';
+        stats.style.display = 'grid';
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Cloning in progress...';
+        
+        const formData = new FormData(this);
+        const body = {
+            url: url,
+            downloadImages: formData.get('download_images') === 'on',
+            downloadCss: formData.get('download_css') === 'on',
+            downloadJs: formData.get('download_js') === 'on',
+            followLinks: formData.get('follow_links') === 'on',
+            recursive: formData.get('recursive') === 'on',
+            preserveStructure: formData.get('preserve_structure') === 'on'
+        };
+        
+        const startTime = Date.now();
+        
+        try {
+            const response = await fetch('/api/clone', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            
+            const data = await response.json();
+            
+            // Display logs
+            if (data.logs) {
+                data.logs.forEach(msg => {
+                    log.innerHTML += '> ' + msg + '\n';
+                });
+            }
+            
+            if (data.success) {
+                // Update progress to 100%
+                document.getElementById('progressFill').style.width = '100%';
+                document.getElementById('progressFill').innerHTML = '100%';
+                
+                // Update stats
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById('statFiles').innerHTML = data.result.downloaded || data.result.visited;
+                document.getElementById('statTime').innerHTML = elapsed + 's';
+                
+                // Show download link
+                if (data.result.zipFile) {
+                    downloadSection.style.display = 'block';
+                    document.getElementById('downloadLink').href = '/' + data.result.zipFile;
+                }
+                
+                alertContainer.innerHTML = '<div class="alert alert-success">✅ Cloning complete! ' + 
+                    data.result.visited + ' URLs processed, ' + data.result.downloaded + ' files downloaded.</div>';
+            } else {
+                alertContainer.innerHTML = '<div class="alert alert-error">❌ Error: ' + (data.error || 'Unknown error') + '</div>';
+            }
+        } catch (err) {
+            alertContainer.innerHTML = '<div class="alert alert-error">❌ Network error: ' + err.message + '</div>';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '🚀 Start Cloning Website';
+            log.scrollTop = log.scrollHeight;
+        }
+    });
+    </script>
+</body>
+</html>
